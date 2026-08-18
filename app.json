@@ -1,24 +1,41 @@
 {
   "expo": {
-    "name": "inDriver-demo",
+    "name": "ໄປນຳກັນ",
     "slug": "inDriver-demo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "backgroundColor": "#F4F5F7",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "ໃຊ້ຕຳແໜ່ງຂອງທ່ານເພື່ອຕັ້ງຈຸດຮັບອັດຕະໂນມັດ · Used to set your pick-up point automatically."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#A7E92F",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "newArchEnabled": true,
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "ໃຊ້ຕຳແໜ່ງຂອງທ່ານເພື່ອຕັ້ງຈຸດຮັບອັດຕະໂນມັດ · Used to set your pick-up point automatically."
+        }
+      ]
+    ]
   }
 }

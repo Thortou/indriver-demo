@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "ໄປນຳກັນ",
+    "name": "inseeDrive Driver",
     "slug": "inDriver-demo",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,8 +10,21 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "ໃຊ້ຕຳແໜ່ງຂອງທ່ານເພື່ອຕັ້ງຈຸດຮັບອັດຕະໂນມັດ · Used to set your pick-up point automatically."
-      }
+        "NSLocationWhenInUseUsageDescription": "ໃຊ້ຕຳແໜ່ງຂອງທ່ານເພື່ອຮັບວຽກໃກ້ທ່ານ · Used to find ride requests near you.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "ສົ່ງຕຳແໜ່ງຕໍ່ເນື່ອງຂະນະທີ່ທ່ານອອນລາຍ · Keeps sending your location while you are online.",
+        "NSCameraUsageDescription": "ຖ່າຍຮູບເອກະສານຄົນຂັບ · Used to photograph your driver documents.",
+        "NSPhotoLibraryUsageDescription": "ເລືອກຮູບເອກະສານ · Used to choose document photos.",
+        "UIBackgroundModes": [
+          "location",
+          "fetch",
+          "remote-notification"
+        ],
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true,
+          "NSAllowsArbitraryLoads": true
+        }
+      },
+      "bundleIdentifier": "com.inseedrive.driver"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,18 +35,51 @@
       },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
-      ]
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "CAMERA",
+        "POST_NOTIFICATIONS"
+      ],
+      "package": "com.inseedrive.driver.dev"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "newArchEnabled": true,
     "plugins": [
+      "expo-font",
+      "expo-splash-screen",
+      "expo-secure-store",
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "ໃຊ້ຕຳແໜ່ງຂອງທ່ານເພື່ອຕັ້ງຈຸດຮັບອັດຕະໂນມັດ · Used to set your pick-up point automatically."
+          "locationAlwaysAndWhenInUsePermission": "ສົ່ງຕຳແໜ່ງຕໍ່ເນື່ອງຂະນະທີ່ທ່ານອອນລາຍ · Keeps sending your location while you are online.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "isIosBackgroundLocationEnabled": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "ຖ່າຍຮູບເອກະສານຄົນຂັບ · Used to photograph your driver documents.",
+          "photosPermission": "ເລືອກຮູບເອກະສານ · Used to choose document photos."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "enableBackgroundRemoteNotifications": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          },
+          "ios": {}
         }
       ]
     ]

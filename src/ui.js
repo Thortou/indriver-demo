@@ -1,0 +1,426 @@
+/* =============================================================================
+   ui.js — shared UI primitives for the driver app, on the LaoRide tokens.
+   ========================================================================== */
+
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  TextInput,
+  ActivityIndicator,
+  Image,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { C, R, theme, grotesk, fmtNum } from '../theme';
+import { t } from './i18n';
+
+/** Money: digits in Space Grotesk, ₭ in the Lao face (Grotesk has no ₭ glyph). */
+export function Kip({ value, style, unitStyle }) {
+  return (
+    <Text style={style} numberOfLines={1}>
+      <Text style={grotesk(700)}>{fmtNum(value || 0)}</Text>
+      <Text style={unitStyle}> ₭</Text>
+    </Text>
+  );
+}
+
+export function Btn({ title, onPress, variant = 'primary', disabled, busy, small, style }) {
+  const v = {
+    primary: { bg: C.lime, fg: C.ink, border: C.lime },
+    dark: { bg: C.ink, fg: C.lime, border: C.ink },
+    outline: { bg: C.card2, fg: C.accentText, border: C.lime },
+    ghost: { bg: C.card2, fg: C.sub, border: C.line },
+    danger: { bg: 'transparent', fg: C.red, border: C.line },
+  }[variant];
+  const off = disabled || busy;
+  return (
+    <Pressable
+      onPress={off ? undefined : onPress}
+      style={({ pressed }) => [
+        s.btn,
+        small && s.btnSmall,
+        { backgroundColor: v.bg, borderColor: v.border },
+        disabled && { opacity: 0.4 },
+        pressed && !off && { opacity: 0.75 },
+        style,
+      ]}>
+      {busy ? (
+        <ActivityIndicator color={v.fg} />
+      ) : (
+        <Text style={[s.btnText, small && s.btnTextSmall, { color: v.fg }]}>{title}</Text>
+      )}
+    </Pressable>
+  );
+}
+
+export function Chip({ label, active, onPress, style }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [s.chip, active && s.chipOn, pressed && { opacity: 0.75 }, style]}>
+      <Text style={[s.chipText, active && s.chipTextOn]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+export function Card({ children, style }) {
+  return <View style={[s.card, style]}>{children}</View>;
+}
+
+export function H1({ children, style }) {
+  return <Text style={[s.h1, style]}>{children}</Text>;
+}
+export function H2({ children, style }) {
+  return <Text style={[s.h2, style]}>{children}</Text>;
+}
+export function Sub({ children, style, numberOfLines }) {
+  return (
+    <Text style={[s.sub, style]} numberOfLines={numberOfLines}>
+      {children}
+    </Text>
+  );
+}
+
+/** Coloured status pill. tone: green | amber | red | grey | lime */
+export function Badge({ label, tone = 'grey', style }) {
+  const tones = {
+    green: { bg: '#E3F6EC', fg: '#1F8A55' },
+    amber: { bg: '#FEF3DC', fg: '#A76400' },
+    red: { bg: '#FDE8E4', fg: '#C23B26' },
+    grey: { bg: C.card2, fg: C.sub },
+    lime: { bg: C.limeSoft, fg: C.accentText },
+  }[tone];
+  return (
+    <View style={[s.badge, { backgroundColor: tones.bg }, style]}>
+      <Text style={[s.badgeText, { color: tones.fg }]}>{label}</Text>
+    </View>
+  );
+}
+
+export function Field({ label, error, hint, style, inputStyle, ...input }) {
+  return (
+    <View style={[{ marginBottom: 14 }, style]}>
+      {!!label && <Text style={s.label}>{label}</Text>}
+      <TextInput
+        placeholderTextColor={C.faint}
+        style={[s.input, error && { borderColor: C.red }, inputStyle]}
+        {...input}
+      />
+      {!!(error || hint) && <Text style={[s.hint, error && { color: C.red }]}>{error || hint}</Text>}
+    </View>
+  );
+}
+
+export function Row({ label, value, last, onPress, right }) {
+  const body = (
+    <>
+      <Text style={s.rowLabel}>{label}</Text>
+      {right || (!!value && <Text style={s.rowValue}>{value}</Text>)}
+      {!!onPress && <Text style={s.chev}>›</Text>}
+    </>
+  );
+  return onPress ? (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [s.row, last && s.rowLast, pressed && { backgroundColor: C.limeWash }]}>
+      {body}
+    </Pressable>
+  ) : (
+    <View style={[s.row, last && s.rowLast]}>{body}</View>
+  );
+}
+
+export function Stars({ value, size = 14, onChange }) {
+  const v = Math.round(value || 0);
+  if (!onChange) {
+    return (
+      <Text style={{ color: C.accentText, fontSize: size, lineHeight: size * 1.5 }}>
+        {'★'.repeat(v)}
+        <Text style={{ color: C.line }}>{'★'.repeat(5 - v)}</Text>
+      </Text>
+    );
+  }
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Pressable key={i} onPress={() => onChange(i)} hitSlop={6} style={{ paddingHorizontal: 5 }}>
+          <Text style={{ fontSize: size, lineHeight: size * 1.35, color: i <= v ? C.text : C.line }}>★</Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+export function Avatar({ uri, name, size = 48 }) {
+  const initials = (name || '?')
+    .split(' ')
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  const box = { width: size, height: size, borderRadius: size / 2 };
+  return uri ? (
+    <Image source={{ uri }} style={[box, { backgroundColor: C.card2 }]} />
+  ) : (
+    <View style={[box, s.avatar]}>
+      <Text style={[s.avatarText, { fontSize: size * 0.36, lineHeight: size * 0.5 }]}>{initials}</Text>
+    </View>
+  );
+}
+
+/** Green dot -> connector -> lime square, with addresses. */
+export function RouteLine({ from, to, right }) {
+  return (
+    <View style={{ flexDirection: 'row' }}>
+      <View style={{ width: 12, alignItems: 'center', paddingTop: 8 }}>
+        <View style={s.dotFrom} />
+        <View style={s.connector} />
+        <View style={s.dotTo} />
+      </View>
+      <View style={{ flex: 1, marginLeft: 12 }}>
+        <Text style={s.routeName} numberOfLines={2}>
+          {(from && from.address) || '—'}
+        </Text>
+        <View style={{ height: 14 }} />
+        <Text style={s.routeName} numberOfLines={2}>
+          {(to && to.address) || '—'}
+        </Text>
+      </View>
+      {right}
+    </View>
+  );
+}
+
+export function Center({ children, style }) {
+  return <View style={[s.center, style]}>{children}</View>;
+}
+
+export function Loading() {
+  return (
+    <Center>
+      <ActivityIndicator color={C.accentText} />
+    </Center>
+  );
+}
+
+export function ErrorBox({ message, onRetry }) {
+  return (
+    <Center>
+      <Text style={[s.sub, { textAlign: 'center', marginBottom: 12 }]}>{message}</Text>
+      {!!onRetry && <Btn small variant="outline" title={t('retry')} onPress={onRetry} />}
+    </Center>
+  );
+}
+
+/** Page scaffold: safe area, a title bar with optional back, scrolling body. */
+export function Page({ title, onBack, right, children, scroll = true, padded = true, footer }) {
+  const Body = scroll ? ScrollView : View;
+  return (
+    <SafeAreaView style={s.page} edges={['top']}>
+      {(title || onBack) && (
+        <View style={s.bar}>
+          {onBack ? (
+            <Pressable onPress={onBack} hitSlop={10} style={s.backCircle}>
+              <Text style={s.backText}>‹</Text>
+            </Pressable>
+          ) : null}
+          <Text style={s.barTitle} numberOfLines={1}>
+            {title}
+          </Text>
+          {right}
+        </View>
+      )}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <Body
+          style={{ flex: 1 }}
+          {...(scroll
+            ? {
+                contentContainerStyle: padded ? s.pageBody : null,
+                keyboardShouldPersistTaps: 'handled',
+              }
+            : {})}>
+          {scroll ? children : <View style={[{ flex: 1 }, padded && s.pageBodyFlat]}>{children}</View>}
+        </Body>
+        {footer ? <View style={s.footer}>{footer}</View> : null}
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+/** Bottom sheet modal. */
+export function Sheet({ visible, onClose, title, children }) {
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <Pressable style={s.scrim} onPress={onClose} />
+        <View style={s.sheet}>
+          <View style={s.handle} />
+          {!!title && <Text style={s.sheetTitle}>{title}</Text>}
+          {children}
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+/** Re-renders every `ms` and returns Date.now() — for countdowns. */
+export function useNow(ms = 1000) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), ms);
+    return () => clearInterval(id);
+  }, [ms]);
+  return now;
+}
+
+/** Floating one-line message, fed by the store's `toast`. */
+export function Toast({ text }) {
+  if (!text) return null;
+  return (
+    <View pointerEvents="none" style={s.toastWrap}>
+      <View style={s.toast}>
+        <Text style={s.toastText}>{text}</Text>
+      </View>
+    </View>
+  );
+}
+
+export const s = theme(
+  {
+    page: { flex: 1, backgroundColor: C.bg },
+    pageBody: { padding: 20, paddingBottom: 40 },
+    pageBodyFlat: { padding: 20 },
+    footer: { padding: 16, paddingBottom: 24, borderTopWidth: 1, borderTopColor: C.line, backgroundColor: C.bg },
+    bar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      gap: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: C.line,
+      backgroundColor: C.bg,
+    },
+    barTitle: { flex: 1, color: C.text, fontSize: 19, lineHeight: 29, fontWeight: '700' },
+    backCircle: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: C.card,
+      borderWidth: 1,
+      borderColor: C.line,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    backText: { color: C.text, fontSize: 24, lineHeight: 30, fontWeight: '500' },
+
+    h1: { color: C.text, fontSize: 28, lineHeight: 42, fontWeight: '700' },
+    h2: { color: C.text, fontSize: 17, lineHeight: 27, fontWeight: '700', marginBottom: 8 },
+    sub: { color: C.sub, fontSize: 14, lineHeight: 22 },
+
+    card: {
+      backgroundColor: C.card,
+      borderRadius: R.card,
+      borderWidth: 1,
+      borderColor: C.line,
+      padding: 16,
+      marginBottom: 12,
+    },
+
+    btn: {
+      borderRadius: R.btn,
+      borderWidth: 1,
+      paddingVertical: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 56,
+    },
+    btnSmall: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: R.sm, minHeight: 42 },
+    btnText: { fontSize: 16, lineHeight: 25, fontWeight: '700' },
+    btnTextSmall: { fontSize: 13.5, lineHeight: 21, fontWeight: '700' },
+
+    chip: {
+      backgroundColor: C.card,
+      borderWidth: 1,
+      borderColor: C.line,
+      borderRadius: 20,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      alignItems: 'center',
+    },
+    chipOn: { borderColor: C.lime, backgroundColor: C.limeSoft },
+    chipText: { color: C.sub, fontSize: 13, lineHeight: 20, fontWeight: '500' },
+    chipTextOn: { color: C.text, fontWeight: '600' },
+
+    badge: { borderRadius: R.pill, paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-start' },
+    badgeText: { fontSize: 12, lineHeight: 19, fontWeight: '600' },
+
+    label: { color: C.sub, fontSize: 13, lineHeight: 20, fontWeight: '600', marginBottom: 6 },
+    input: {
+      backgroundColor: C.card,
+      borderWidth: 1,
+      borderColor: C.line,
+      borderRadius: R.input,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      color: C.text,
+      fontSize: 16,
+      lineHeight: 24,
+      fontWeight: '500',
+    },
+    hint: { color: C.faint, fontSize: 12, lineHeight: 18, marginTop: 4 },
+
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 13,
+      borderBottomWidth: 1,
+      borderBottomColor: C.hair,
+      gap: 10,
+    },
+    rowLast: { borderBottomWidth: 0 },
+    rowLabel: { flex: 1, color: C.text, fontSize: 15, lineHeight: 23, fontWeight: '500' },
+    rowValue: { color: C.sub, fontSize: 14, lineHeight: 22, fontWeight: '500', flexShrink: 1, textAlign: 'right' },
+    chev: { color: C.faint, fontSize: 20, lineHeight: 24 },
+
+    avatar: { backgroundColor: C.limeSoft, alignItems: 'center', justifyContent: 'center' },
+    avatarText: { color: C.accentText, fontWeight: '700' },
+
+    dotFrom: { width: 10, height: 10, borderRadius: 5, backgroundColor: C.green },
+    connector: { width: 2, flex: 1, minHeight: 16, backgroundColor: C.line, marginVertical: 3 },
+    dotTo: { width: 10, height: 10, borderRadius: 2, backgroundColor: C.lime },
+    routeName: { color: C.text, fontSize: 15, lineHeight: 23, fontWeight: '600' },
+
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+
+    scrim: { flex: 1, backgroundColor: 'rgba(16,24,40,0.35)' },
+    sheet: {
+      backgroundColor: C.card,
+      borderTopLeftRadius: R.sheet,
+      borderTopRightRadius: R.sheet,
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      paddingBottom: 32,
+    },
+    handle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: '#D6DBE1',
+      marginBottom: 14,
+    },
+    sheetTitle: { color: C.text, fontSize: 19, lineHeight: 29, fontWeight: '700', marginBottom: 12 },
+
+    toastWrap: { position: 'absolute', left: 16, right: 16, bottom: 96, alignItems: 'center' },
+    toast: { backgroundColor: C.ink, borderRadius: R.input, paddingHorizontal: 16, paddingVertical: 11 },
+    toastText: { color: '#FFFFFF', fontSize: 14, lineHeight: 22, fontWeight: '600', textAlign: 'center' },
+  },
+  []
+);

@@ -1,3 +1,7 @@
+# Used by EAS instead of .gitignore. Same as .gitignore, except that the
+# Firebase client config (google-services.json) IS uploaded, so push works
+# in EAS builds while the file stays out of git.
+
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies
@@ -40,12 +44,9 @@ yarn-error.*
 /ios
 /android
 
-# app env (EXPO_PUBLIC_* values only)
+# app env: EAS gets EXPO_PUBLIC_* from eas.json instead
 .env
 
 # Firebase server credentials: backend only, never in the app
 *firebase-adminsdk*.json
 
-# Firebase client config: kept out of git, but EAS still uploads it (.easignore)
-google-services.json
-GoogleService-Info.plist
